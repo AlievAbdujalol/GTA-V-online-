@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GTA5 Party Launcher - Играй с друзьями!</title>
+    <style>
+        body { font-family: Arial; background: #000; color: #fff; text-align: center; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        button { background: #ff4444; color: white; border: none; padding: 15px 30px; font-size: 18px; cursor: pointer; border-radius: 10px; }
+        button:hover { background: #cc0000; }
+        #serverInfo { background: #222; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        .qr { width: 200px; height: 200px; margin: 10px; }
+        input { padding: 10px; width: 300px; margin: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 GTA 5 Мультиплеер с друзьями</h1>
+        <p>Создай приватный сервер FiveM/RageMP за 10 сек. Бесплатно!</p>
+        
+        <button onclick="createServer()">🎮 Создать Сервер</button>
+        <div id="serverInfo" style="display:none;">
+            <h2>Твой сервер готов!</h2>
+            <p><strong>IP:</strong> <span id="ip"></span>:<span id="port"></span></p>
+            <p><strong>Команда:</strong> <input id="connectCmd" readonly onclick="copyCmd()"></p>
+            <canvas id="qr" class="qr"></canvas>
+            <button onclick="inviteFriends()">📱 Поделиться с друзьями</button>
+            <button onclick="killServer()">🛑 Выключить сервер</button>
+        </div>
+        
+        <h3>Как играть:</h3>
+        <ol>
+            <li>Создай сервер</li>
+            <li>FiveM/RageMP → F8 → <code>connect IP:PORT</code></li>
+            <li>Играйте вместе! (до 32 чел)</li>
+        </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        let serverId = null;
+        
+        async function createServer() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Создаётся...';
+            
+            // Симуляция облачного сервера (замени на реальный API)
+            const response = await fetch('https://api-serverless.yourdomain.com/create-gta-server', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({type: 'fivem', players: 16})
+            });
+            
+            const data = await response.json();
+            serverId = data.id;
+            document.getElementById('ip').textContent = data.ip;
+            document.getElementById('port').textContent = data.port;
+            document.getElementById('connectCmd').value = `connect ${data.ip}:${data.port}`;
+            
+            // QR-код
+            QRCode.toCanvas(document.getElementById('qr'), `connect ${data.ip}:${data.port}`, {width: 200});
+            
+            document.getElementById('serverInfo').style.display = 'block';
+            btn.textContent = '✅ Сервер запущен!';
+        }
+        
+        function copyCmd() {
+            navigator.clipboard.writeText(document.getElementById('connectCmd').value);
+            alert('Скопировано!');
+        }
+        
+        function inviteFriends() {
+            const url = `https://wa.me/?text=Играй в GTA5 со мной! connect ${document.getElementById('ip').textContent}:${document.getElementById('port').textContent}`;
+            window.open(url, '_blank');
+        }
+        
+        async function killServer() {
+            await fetch(`https://api-serverless.yourdomain.com/kill-server/${serverId}`, {method: 'DELETE'});
+            location.reload();
+        }
+    </script>
+</body>
+</html>
